@@ -1,39 +1,21 @@
-import { getPayload } from "payload";
+import { Suspense } from "react";
 import { Footer } from "./footer";
 import { Navbar } from "./navbar";
-import { SearchFilter } from "./search-filter";
-import configPromise from "@payload-config";
-import { Category } from "@/payload-types";
-import { CustomCategory } from "./types";
+import { SearchFilter, SearchFilterLoading } from "./search-filter";
+import { prefetch, trpc } from "@/trpc/server";
+import { HydrateClient } from "@/trpc/hydrate-client";
 
 const HomeLayout = async ({ children }: { children: React.ReactNode }) => {
-  const payload = await getPayload({
-    config: configPromise,
-  });
-
-  const data = await payload.find({
-    collection: "categories",
-    depth: 1,
-    where: {
-      parent: {
-        exists: false,
-      },
-    },
-    sort: "name",
-  });
-
-  const formattedData: CustomCategory[] = data.docs.map((doc) => ({
-    ...doc,
-    subcategories: (doc.subcategories?.docs ?? []).map((doc) => ({
-      ...(doc as Category),
-      subcategories: undefined,
-    })),
-  }));
+  void prefetch(trpc.categories.getMany.queryOptions());
 
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <SearchFilter data={formattedData} />
+      <HydrateClient>
+        <Suspense fallback={<SearchFilterLoading />}>
+          <SearchFilter />
+        </Suspense>
+      </HydrateClient>
       <div className="flex-1 bg-[#F4F4F0]">{children}</div>
       <Footer />
     </div>
