@@ -28,7 +28,6 @@ export const NavbarSidebar = ({
 }: Props) => {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetTrigger></SheetTrigger>
       <SheetContent side="left" className="p-0 transition-none">
         <SheetHeader className="p-4 border-b">
           <SheetTitle>Menu</SheetTitle>

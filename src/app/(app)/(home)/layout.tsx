@@ -1,7 +1,10 @@
 import { Suspense } from "react";
-import { Footer } from "./footer";
-import { Navbar } from "./navbar";
-import { SearchFilter, SearchFilterLoading } from "./search-filter";
+import { Footer } from "@/modules/home/ui/components/footer";
+import { Navbar } from "@/modules/home/ui/components/navbar";
+import {
+  SearchFilter,
+  SearchFilterLoading,
+} from "@/modules/home/ui/components/search-filter";
 import { prefetch, trpc } from "@/trpc/server";
 import { HydrateClient } from "@/trpc/hydrate-client";
 

@@ -75,16 +75,15 @@ export const SignInView = () => {
                   funroad
                 </span>
               </Link>
-              <Button
-                asChild
-                variant="ghost"
-                size="sm"
-                className="text-base border-none underline"
-              >
-                <Link prefetch href="/sign-up">
+              <Link prefetch href="/sign-up">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-base border-none underline"
+                >
                   Sign up
-                </Link>
-              </Button>
+                </Button>
+              </Link>
             </div>
 
             <h1 className="text-4xl font-medium">Welcome back to funroad.</h1>
