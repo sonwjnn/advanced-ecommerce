@@ -25,7 +25,7 @@ export const SearchInput = ({ disabled }: Props) => {
       <div className="relative w-full">
         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-500" />
         <Input
-          className="pl-8"
+          className="pl-8.5"
           placeholder="Search products"
           disabled={disabled}
         />
@@ -39,12 +39,12 @@ export const SearchInput = ({ disabled }: Props) => {
         <ListFilterIcon />
       </Button>
       {session?.user && (
-        <Button asChild variant="elevated" className="hidden lg:flex">
-          <Link href="/library">
+        <Link href="/library">
+          <Button variant="elevated" className="hidden lg:flex">
             <BookmarkCheckIcon />
             Library
-          </Link>
-        </Button>
+          </Button>
+        </Link>
       )}
     </div>
   );

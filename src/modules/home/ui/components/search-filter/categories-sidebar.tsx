@@ -78,7 +78,7 @@ export const CategoriesSidebar = ({
         style={{ backgroundColor }}
       >
         <SheetHeader className="p-4 border-b">
-          <SheetTitle>Categories</SheetTitle>
+          <SheetTitle>{selectedCategory?.name || "Categories"}</SheetTitle>
         </SheetHeader>
         <ScrollArea className="flex flex-col overflow-y-auto h-full pb-2">
           {parentCategories && (
