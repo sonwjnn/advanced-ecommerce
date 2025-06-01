@@ -34,11 +34,11 @@ export const CategoryDropdown = ({
 
   const onMouseLeave = () => setIsOpen(false);
 
-  const toggleDropdown = () => {
-    if (category.subcategories?.length) {
-      setIsOpen(!isOpen);
-    }
-  };
+  // const toggleDropdown = () => {
+  //   if (category.subcategories?.length) {
+  //     setIsOpen(!isOpen);
+  //   }
+  // };
 
   return (
     <div
@@ -46,7 +46,7 @@ export const CategoryDropdown = ({
       ref={dropdownRef}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      onClick={toggleDropdown}
+      // onClick={toggleDropdown}
     >
       <div className="relative">
         <Link href={`/${category.slug === "all" ? "" : category.slug}`}>

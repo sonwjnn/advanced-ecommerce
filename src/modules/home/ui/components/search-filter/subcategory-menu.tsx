@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CategoriesGetManyOutputSingle } from "@/modules/categories/types";
+import { SubcategoryItem } from "./subcategory-item";
 
 interface Props {
   category: CategoriesGetManyOutputSingle;
@@ -24,13 +25,12 @@ export const SubcategoryMenu = ({ category, isOpen, position }: Props) => {
       >
         <div>
           {category.subcategories.map((subcategory) => (
-            <Link
+            <SubcategoryItem
               key={subcategory.id}
-              href={`/${category.slug}/${subcategory.slug}`}
-              className="w-full text-left p-4 hover:bg-black hover:text-white flex justify-between items-center underline font-medium"
-            >
-              {subcategory.name}
-            </Link>
+              subcategorySlug={subcategory.slug}
+              categorySlug={category.slug}
+              subcategoryName={subcategory.name}
+            />
           ))}
         </div>
       </div>
