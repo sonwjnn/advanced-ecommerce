@@ -18,10 +18,11 @@ import { Poppins } from "next/font/google";
 import { loginSchema } from "../../schemas";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { useMutation } from "@tanstack/react-query";
-import { useTRPC } from "@/trpc/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+// import { useTRPC } from "@/trpc/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useTRPC } from "@/trpc/client";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -31,6 +32,7 @@ const poppins = Poppins({
 export const SignInView = () => {
   const router = useRouter();
 
+  const queryClient = useQueryClient();
   const trpc = useTRPC();
   const login = useMutation(
     trpc.auth.login.mutationOptions({
@@ -38,6 +40,7 @@ export const SignInView = () => {
         toast.error(error.message);
       },
       onSuccess: () => {
+        queryClient.invalidateQueries(trpc.auth.session.queryFilter());
         router.replace("/");
       },
     })

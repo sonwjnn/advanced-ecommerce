@@ -23,6 +23,7 @@ export default buildConfig({
   },
   collections: [Users, Media, Categories],
   editor: lexicalEditor(),
+  cookiePrefix: "funroad",
   secret: process.env.PAYLOAD_SECRET || "",
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),
