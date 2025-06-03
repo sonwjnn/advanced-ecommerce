@@ -23,6 +23,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useTRPC } from "@/trpc/client";
+import Image from "next/image";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -128,7 +129,14 @@ export const SignInView = () => {
         </Form>
       </div>
       <div className="h-screen w-full lg:col-span-2 hidden lg:block">
-        Background column
+        <Image
+          src="/bg.png"
+          alt="bg"
+          width={0}
+          height={0}
+          sizes="100vw"
+          className="object-cover size-full"
+        />
       </div>
     </div>
   );
