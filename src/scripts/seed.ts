@@ -135,7 +135,33 @@ const categories = [
 ];
 
 const seed = async () => {
-  const payload = await getPayload({ config });
+  const payload = await getPayload({
+    config,
+  });
+
+  const adminTenant = await payload.create({
+    collection: "tenants",
+    data: {
+      name: "admin",
+      slug: "admin",
+      stripeAccountId: "mock",
+    },
+  });
+
+  await payload.create({
+    collection: "users",
+    data: {
+      email: "admin@metashopper.com",
+      username: "metashopperadmin",
+      roles: ["super-admin"],
+      password: "admin123",
+      tenants: [
+        {
+          tenant: adminTenant.id,
+        },
+      ],
+    },
+  });
 
   for (const category of categories) {
     const parentCategory = await payload.create({
@@ -147,13 +173,12 @@ const seed = async () => {
         parent: null,
       },
     });
-
-    for (const subcategory of category.subcategories || []) {
+    for (const subCategory of category.subcategories || []) {
       await payload.create({
         collection: "categories",
         data: {
-          name: subcategory.name,
-          slug: subcategory.slug,
+          name: subCategory.name,
+          slug: subCategory.slug,
           parent: parentCategory.id,
         },
       });
@@ -161,6 +186,11 @@ const seed = async () => {
   }
 };
 
-await seed();
-
-process.exit(0);
+try {
+  await seed();
+  console.log("Seeded successfully");
+  process.exit(0);
+} catch (error) {
+  console.error("Error seeding", error);
+  process.exit(1);
+}

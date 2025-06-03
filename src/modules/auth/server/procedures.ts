@@ -25,12 +25,22 @@ export const authRouter = createTRPCRouter({
         },
       });
 
-      if (existingData.docs.length > 0) {
+      const existingUser = existingData.docs[0];
+      if (existingUser) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Username already exists",
+          message: "Username already taken",
         });
       }
+
+      const tenants = await ctx.db.create({
+        collection: "tenants",
+        data: {
+          name: input.username,
+          slug: input.username.toLowerCase(),
+          stripeAccountId: "mock",
+        },
+      });
 
       await ctx.db.create({
         collection: "users",
@@ -38,6 +48,11 @@ export const authRouter = createTRPCRouter({
           email: input.email,
           password: input.password, // This will be hashed
           username: input.username,
+          tenants: [
+            {
+              tenant: tenants.id,
+            },
+          ],
         },
       });
 

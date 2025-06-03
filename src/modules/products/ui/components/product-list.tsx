@@ -10,12 +10,15 @@ import { ProductCard, ProductCardSkeleton } from "./product-card";
 import { DEFAULT_LIMIT } from "@/constants";
 import { Button } from "@/components/ui/button";
 import { InboxIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Props {
   category?: string;
+  tenantSlug?: string;
+  narrowView?: boolean;
 }
 
-export const ProductList = ({ category }: Props) => {
+export const ProductList = ({ category, tenantSlug, narrowView }: Props) => {
   const [filters] = useProductFilters();
 
   const trpc = useTRPC();
@@ -23,9 +26,10 @@ export const ProductList = ({ category }: Props) => {
     useSuspenseInfiniteQuery(
       trpc.products.getMany.infiniteQueryOptions(
         {
-          category,
           ...filters,
+          category,
           limit: DEFAULT_LIMIT,
+          tenantSlug,
         },
         {
           getNextPageParam: (lastPage) => {
@@ -37,16 +41,23 @@ export const ProductList = ({ category }: Props) => {
 
   if (data.pages?.[0]?.docs.length === 0) {
     return (
-      <div className="border border-black border-dashed flex items-center justify-center p-8 flex-col gap-y-4 bg-white w-full rounded-lg">
-        <InboxIcon />
-        <p className="text-base font-medium">No products found</p>
+      <div className="flex flex-col items-center justify-center h-64">
+        <h2 className="text-lg font-semibold">No products found</h2>
+        <p className="text-gray-500">
+          Try adjusting your filters or search terms.
+        </p>
       </div>
     );
   }
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+      <div
+        className={cn(
+          "grid grid-cols-1 xl:grid-cols-3 lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-2 gap-4",
+          narrowView && "lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3"
+        )}
+      >
         {data?.pages.map((page) =>
           page.docs.map((product) => (
             <ProductCard
@@ -54,11 +65,11 @@ export const ProductList = ({ category }: Props) => {
               id={product.id}
               name={product.name}
               imageUrl={product.image?.url}
-              authorUsername={"sonwin"}
-              authorImageUrl={undefined}
+              tenantSlug={product.tenant?.slug}
+              tenantImage={product.tenant?.image?.url}
               reviewRating={3}
               reviewCount={3}
-              price={product.price}
+              price={product.price ?? 0}
             />
           ))
         )}
@@ -79,9 +90,14 @@ export const ProductList = ({ category }: Props) => {
   );
 };
 
-export const ProductListLoading = () => {
+export const ProductListLoading = ({ narrowView }: Props) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+    <div
+      className={cn(
+        "grid grid-cols-1 xl:grid-cols-3 lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-2 gap-4",
+        narrowView && "lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3"
+      )}
+    >
       {Array.from({ length: DEFAULT_LIMIT }).map((_, index) => (
         <ProductCardSkeleton key={index} />
       ))}

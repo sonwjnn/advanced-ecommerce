@@ -9,13 +9,15 @@
     "lint": "next lint",
     "generate:types": "payload generate:types",
     "db:fresh": "payload migrate:fresh",
-    "db:seed": "bun run src/scripts/seed-categories.ts"
+    "db:generate:importmap": "payload generate:importmap",
+    "db:reset": "bun run src/scripts/seed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
     "@payloadcms/db-mongodb": "^3.40.0",
     "@payloadcms/next": "^3.40.0",
     "@payloadcms/payload-cloud": "^3.40.0",
+    "@payloadcms/plugin-multi-tenant": "^3.40.0",
     "@payloadcms/richtext-lexical": "^3.40.0",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",

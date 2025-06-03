@@ -9,13 +9,19 @@ export const Products: CollectionConfig = {
       required: true,
     },
     {
+      name: "slug",
+      type: "text",
+      required: true,
+      unique: true,
+      index: true,
+    },
+    {
       name: "description",
       type: "text",
     },
     {
       name: "price",
       type: "number",
-      required: true,
       admin: {
         description: "Price in USD",
       },
@@ -25,6 +31,7 @@ export const Products: CollectionConfig = {
       type: "relationship",
       relationTo: "categories",
       hasMany: false,
+      required: true,
     },
     {
       name: "tags",
@@ -40,8 +47,8 @@ export const Products: CollectionConfig = {
     {
       name: "refundPolicy",
       type: "select",
-      options: ["30-day", "14-day", "7-day", "3-day", "1-day", "no-refunds"],
-      defaultValue: "30-day",
+      options: ["no-refund", "1-day", "3-day", "7-day", "30-day"],
+      defaultValue: "no-refund",
     },
   ],
 };
