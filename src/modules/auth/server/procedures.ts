@@ -4,6 +4,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { registerSchema } from "../schemas";
 import { generateAuthCookie } from "../utils";
+import { stripe } from "@/lib/stripe";
 export const authRouter = createTRPCRouter({
   session: baseProcedure.query(async ({ ctx }) => {
     const headers = await getHeaders();
@@ -33,12 +34,21 @@ export const authRouter = createTRPCRouter({
         });
       }
 
+      const account = await stripe.accounts.create({});
+
+      if (!account) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create Stripe account",
+        });
+      }
+
       const tenants = await ctx.db.create({
         collection: "tenants",
         data: {
           name: input.username,
           slug: input.username.toLowerCase(),
-          stripeAccountId: "mock",
+          stripeAccountId: account.id,
         },
       });
 
@@ -75,6 +85,8 @@ export const authRouter = createTRPCRouter({
         prefix: ctx.db.config.cookiePrefix,
         value: data.token,
       });
+
+      return data;
     }),
 
   login: baseProcedure

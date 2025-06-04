@@ -4,6 +4,9 @@ import { Sort, Where } from "payload";
 import { z } from "zod";
 import { sortValues } from "../search-params";
 import { DEFAULT_LIMIT } from "@/constants";
+import { TRPCError } from "@trpc/server";
+import { headers as getHeaders } from "next/headers";
+
 export const productsRouter = createTRPCRouter({
   getOne: baseProcedure
     .input(
@@ -12,20 +15,117 @@ export const productsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
+      const headers = await getHeaders();
+      const session = await ctx.db.auth({ headers });
+
+      // Query the database for a product with the specified ID
       const product = await ctx.db.findByID({
         collection: "products",
         id: input.id,
-        depth: 2, // Populate tenant and images
+        depth: 2, // Include related fields like image, category, tenant, tenant.image
+        select: {
+          content: false, // Exclude the content field from the results
+        },
       });
+
+      // If the product is archived, throw an error
+      if (product.isArchived) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Product not found",
+        });
+      }
+
+      // Initialize purchase flag
+      let isPurchased = false;
+
+      // If the user is authenticated, check for matching purchase
+      if (session.user) {
+        // Query the orders collection to see if this product was purchased by the user
+        const ordersData = await ctx.db.find({
+          collection: "orders",
+          pagination: false,
+          limit: 1,
+          where: {
+            and: [
+              {
+                product: {
+                  equals: input.id,
+                },
+              },
+              {
+                user: {
+                  equals: session.user.id,
+                },
+              },
+            ],
+          },
+        });
+
+        // If a matching order exists, set isPurchased to true
+        isPurchased = !!ordersData.docs[0];
+      }
+
+      // Fetch all reviews associated with the product
+      const reviews = await ctx.db.find({
+        collection: "reviews",
+        pagination: false,
+        where: {
+          product: { equals: input.id },
+        },
+      });
+
+      // Calculate average review rating (default to 0 if no reviews)
+      const reviewRating =
+        reviews.docs.length === 0
+          ? 0
+          : reviews.docs.reduce((acc, review) => acc + review.rating, 0) /
+            reviews.docs.length;
+
+      // Initialize distribution map to track % of each star rating
+      const ratingDistribution: Record<number, number> = {
+        5: 0,
+        4: 0,
+        3: 0,
+        2: 0,
+        1: 0,
+      };
+
+      // Count how many reviews exist per rating (1–5)
+      if (reviews.totalDocs > 0) {
+        reviews.docs.forEach((review) => {
+          const rating = review.rating;
+
+          if (rating >= 1 && rating <= 5) {
+            ratingDistribution[rating] = (ratingDistribution[rating] || 0) + 1;
+          }
+        });
+
+        // Convert raw counts into percentages
+        Object.keys(ratingDistribution).forEach((key) => {
+          const rating = Number(key);
+          const count = ratingDistribution[rating] || 0;
+
+          ratingDistribution[rating] = Math.round(
+            (count / reviews.totalDocs) * 100
+          );
+        });
+      }
+
       return {
         ...product,
+        isPurchased,
         image: product.image as Media | null,
         tenant: product.tenant as Tenant & { image: Media | null },
+        reviewRating,
+        reviewCount: reviews.totalDocs,
+        ratingDistribution,
       };
     }),
   getMany: baseProcedure
     .input(
       z.object({
+        search: z.string().nullable().optional(),
         cursor: z.number().default(1),
         limit: z.number().default(DEFAULT_LIMIT),
         category: z.string().nullable().optional(),
@@ -33,11 +133,16 @@ export const productsRouter = createTRPCRouter({
         maxPrice: z.string().nullable().optional(),
         tags: z.array(z.string()).nullable().optional(),
         sort: z.enum(sortValues).nullable().optional(),
-        tenantSlug: z.string().optional().nullable(),
+        tenantSlug: z.string().nullable().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const where: Where = {};
+      const where: Where = {
+        isArchived: {
+          not_equals: true, // Exclude archived products
+        },
+      };
+
       let sort: Sort = "-createdAt";
 
       if (input.sort === "trending") {
@@ -67,9 +172,15 @@ export const productsRouter = createTRPCRouter({
         };
       }
 
+      // Apply tenant filter if a tenant slug is provided
       if (input.tenantSlug) {
         where["tenant.slug"] = {
           equals: input.tenantSlug,
+        };
+      } else {
+        // If we are loading products for public storefront, we need to exclude private products
+        where["isPrivate"] = {
+          not_equals: true, // Match products that are not private
         };
       }
 
@@ -77,8 +188,8 @@ export const productsRouter = createTRPCRouter({
       if (input.category) {
         const categoriesData = await ctx.db.find({
           collection: "categories",
-          limit: 1,
-          depth: 1, // Populate "subcategories", subcategories[0] will be a type of "Category"
+          limit: 1, // Only expect one matching category
+          depth: 1, // Include subcategories up to one level deep
           pagination: false,
           where: {
             slug: {
@@ -95,7 +206,7 @@ export const productsRouter = createTRPCRouter({
           })),
         }));
 
-        const subcategoriesSlugs = [];
+        const subcategoriesSlugs: string[] = [];
         const parentCategory = formattedData[0];
 
         if (parentCategory?.subcategories) {
@@ -114,18 +225,57 @@ export const productsRouter = createTRPCRouter({
         };
       }
 
+      if (input.search) {
+        where["name"] = {
+          like: input.search,
+        };
+      }
+
       const data = await ctx.db.find({
         collection: "products",
-        depth: 1, // Populate "category" & "image"
+        depth: 2, // Include relational fields (like images, category, tenant, tenant.image etc.)
         where,
         sort,
         page: input.cursor,
         limit: input.limit,
+        select: {
+          content: false, // Exclude the content field from the results
+        },
       });
 
+      // Map over each product to attach summarized review data
+      const dataWithSummarizedReviews = await Promise.all(
+        data.docs.map(async (doc) => {
+          // Fetch all reviews related to the current product
+          const reviewsData = await ctx.db.find({
+            collection: "reviews",
+            pagination: false,
+            where: {
+              product: {
+                equals: doc.id,
+              },
+            },
+          });
+
+          // Return the product along with its reviews and average rating
+          return {
+            ...doc,
+            reviews: reviewsData.docs,
+            reviewCount: reviewsData.docs.length,
+            reviewRating:
+              reviewsData.docs.length === 0
+                ? 0
+                : reviewsData.docs.reduce(
+                    (acc, review) => acc + review.rating,
+                    0
+                  ) / reviewsData.docs.length, // Average rating calculation
+          };
+        })
+      );
+
       return {
-        ...data,
-        docs: data.docs.map((doc) => ({
+        ...data, // Include all pagination and meta fields (e.g., totalDocs, limit, totalPages, etc.)
+        docs: dataWithSummarizedReviews.map((doc) => ({
           ...doc,
           image: doc.image as Media | null,
           tenant: doc.tenant as Tenant & { image: Media | null },

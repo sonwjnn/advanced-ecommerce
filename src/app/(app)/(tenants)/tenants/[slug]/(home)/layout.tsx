@@ -1,7 +1,7 @@
-import Footer from "@/modules/tenants/ui/components/footer";
-import Navbar, { NavbarSkeleton } from "@/modules/tenants/ui/components/navbar";
-import { getQueryClient, trpc } from "@/trpc/server";
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { Footer } from "@/modules/tenants/ui/components/footer";
+import { NavbarSkeleton, Navbar } from "@/modules/tenants/ui/components/navbar";
+import { HydrateClient } from "@/trpc/hydrate-client";
+import { prefetch, trpc } from "@/trpc/server";
 import React, { Suspense } from "react";
 
 interface Props {
@@ -10,18 +10,21 @@ interface Props {
 }
 const Layout = async ({ children, params }: Props) => {
   const { slug } = await params;
-  const queryClient = getQueryClient();
-  void queryClient.prefetchQuery(trpc.tenants.getOne.queryOptions({ slug }));
+
+  void prefetch(trpc.tenants.getOne.queryOptions({ slug }));
+
   return (
     <div className="flex flex-col min-h-screen bg-[F4F4F0]">
-      <HydrationBoundary state={dehydrate(queryClient)}>
+      <HydrateClient>
         <Suspense fallback={<NavbarSkeleton />}>
           <Navbar slug={slug} />
         </Suspense>
-      </HydrationBoundary>
+      </HydrateClient>
+
       <div className="flex-1">
-        <div className="max-w-(breakpoint-xl) mx-auto">{children}</div>
+        <div className="max-w-(--breakpoint-xl) mx-auto">{children}</div>
       </div>
+
       <Footer />
     </div>
   );

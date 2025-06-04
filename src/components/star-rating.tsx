@@ -11,13 +11,14 @@ interface StarRatingProps {
   iconClassName?: string;
   text?: string;
 }
-const StarRating = ({
+export const StarRating = ({
   rating,
   className,
   iconClassName,
   text,
 }: StarRatingProps) => {
   const safeRating = Math.max(MIN_RATING, Math.min(MAX_RATING, rating));
+
   return (
     <div className={cn("flex items-center gap-x-1", className)}>
       {Array.from({ length: MAX_RATING }, (_, index) => (
@@ -34,5 +35,3 @@ const StarRating = ({
     </div>
   );
 };
-
-export default StarRating;

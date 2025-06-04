@@ -1,17 +1,16 @@
-import React from "react";
-import { getQueryClient, trpc } from "@/trpc/server";
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { SearchParams } from "nuqs/server";
+import { DEFAULT_LIMIT } from "@/constants";
 import { loadProductFilters } from "@/modules/products/search-params";
 import { ProductListView } from "@/modules/products/ui/views/product-list-view";
-import { DEFAULT_LIMIT } from "@/constants";
+import { HydrateClient } from "@/trpc/hydrate-client";
+import { prefetch, trpc } from "@/trpc/server";
+import { SearchParams } from "nuqs/server";
 interface Props {
   searchParams: Promise<SearchParams>;
 }
 const Home = async ({ searchParams }: Props) => {
   const filters = await loadProductFilters(searchParams);
-  const queryClient = getQueryClient();
-  void queryClient.prefetchInfiniteQuery(
+
+  void prefetch(
     trpc.products.getMany.infiniteQueryOptions({
       ...filters,
       limit: DEFAULT_LIMIT,
@@ -19,9 +18,9 @@ const Home = async ({ searchParams }: Props) => {
   );
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
+    <HydrateClient>
       <ProductListView />
-    </HydrationBoundary>
+    </HydrateClient>
   );
 };
 

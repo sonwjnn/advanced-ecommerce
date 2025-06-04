@@ -1,8 +1,9 @@
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import { cache } from "react";
 import config from "@payload-config";
 import { getPayload } from "payload";
 import superjson from "superjson";
+import { headers as getHeaders } from "next/headers";
 
 export const createTRPCContext = cache(async () => {
   /**
@@ -23,8 +24,34 @@ const t = initTRPC.create({
 // Base router and procedure helpers
 export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
+
+// baseProcedure - Wraps a procedure with Payload CMS initialization and attaches the DB context
 export const baseProcedure = t.procedure.use(async ({ next }) => {
   const payload = await getPayload({ config });
 
   return next({ ctx: { db: payload } });
+});
+
+// protectedProcedures - Extends baseProcedure to enforce auth via Payload session
+export const protectedProcedures = baseProcedure.use(async ({ ctx, next }) => {
+  const headers = await getHeaders(); // Retrieve request headers
+  const session = await ctx.db.auth({ headers }); // Authenticate via Payload
+
+  // Reject request if session is invalid
+  if (!session.user) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Not authenticated",
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+      session: {
+        ...session,
+        user: session.user, // Attach authenticated user to context
+      },
+    },
+  });
 });

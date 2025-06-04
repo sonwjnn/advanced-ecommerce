@@ -1,10 +1,7 @@
 "use client";
 
 import { useTRPC } from "@/trpc/client";
-import {
-  useSuspenseInfiniteQuery,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { useProductFilters } from "../../hooks/use-product-filter";
 import { ProductCard, ProductCardSkeleton } from "./product-card";
 import { DEFAULT_LIMIT } from "@/constants";
@@ -42,6 +39,7 @@ export const ProductList = ({ category, tenantSlug, narrowView }: Props) => {
   if (data.pages?.[0]?.docs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
+        <InboxIcon />
         <h2 className="text-lg font-semibold">No products found</h2>
         <p className="text-gray-500">
           Try adjusting your filters or search terms.
@@ -67,9 +65,9 @@ export const ProductList = ({ category, tenantSlug, narrowView }: Props) => {
               imageUrl={product.image?.url}
               tenantSlug={product.tenant?.slug}
               tenantImage={product.tenant?.image?.url}
-              reviewRating={3}
-              reviewCount={3}
-              price={product.price ?? 0}
+              reviewRating={product.reviewRating}
+              reviewCount={product.reviewCount}
+              price={product.price}
             />
           ))
         )}
