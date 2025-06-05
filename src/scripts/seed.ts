@@ -3,10 +3,6 @@ import config from "@payload-config";
 
 const categories = [
   {
-    name: "All",
-    slug: "all",
-  },
-  {
     name: "Business & Money",
     color: "#FFB347",
     slug: "business-money",
@@ -151,8 +147,8 @@ const seed = async () => {
   await payload.create({
     collection: "users",
     data: {
-      email: "admin@metashopper.com",
-      username: "metashopperadmin",
+      email: "admin@gmail.com",
+      username: "admin",
       roles: ["super-admin"],
       password: "admin123",
       tenants: [

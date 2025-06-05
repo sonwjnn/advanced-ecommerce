@@ -65,6 +65,17 @@ export const Categories = ({ data }: CategoriesProps) => {
     };
   }, [data.length]);
 
+  const allCategory = {
+    id: "",
+    name: "All",
+    slug: "all",
+    createdAt: "",
+    updatedAt: "",
+    subcategories: [],
+  };
+
+  const categories = [allCategory, ...data];
+
   return (
     <div className="relative w-full">
       {/* Categories Sidebar */}
@@ -76,7 +87,7 @@ export const Categories = ({ data }: CategoriesProps) => {
         className="absolute opacity-0 pointer-events-none flex"
         style={{ position: "fixed", top: -9999, left: -9999 }}
       >
-        {data.map((item) => (
+        {categories.slice(0, visibleCount).map((item) => (
           <div key={item.id}>
             <CategoryDropdown
               category={item}
@@ -94,7 +105,7 @@ export const Categories = ({ data }: CategoriesProps) => {
         onMouseEnter={() => setIsAnyHovered(true)}
         onMouseLeave={() => setIsAnyHovered(false)}
       >
-        {data.slice(0, visibleCount).map((item) => (
+        {categories.slice(0, visibleCount).map((item) => (
           <div key={item.id}>
             <CategoryDropdown
               category={item}

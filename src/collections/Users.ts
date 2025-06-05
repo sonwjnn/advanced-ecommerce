@@ -8,14 +8,14 @@ const defaultTenantsArrayField = tenantsArrayField({
   tenantsArrayTenantFieldName: "tenant",
 
   arrayFieldAccess: {
-    read: () => true, // Allow reading tenant array
-    create: ({ req }) => isSuperAdmin(req.user), // Allow admin to create tenant array items
-    update: ({ req }) => isSuperAdmin(req.user), // Allow admin to update tenant array items
+    read: () => true,
+    create: ({ req }) => isSuperAdmin(req.user),
+    update: ({ req }) => isSuperAdmin(req.user),
   },
   tenantFieldAccess: {
-    read: () => true, // Allow reading individual tenant field
-    create: ({ req }) => isSuperAdmin(req.user), // Allow admin to create tenant field
-    update: ({ req }) => isSuperAdmin(req.user), // Allow admin to update tenant field
+    read: () => true,
+    create: ({ req }) => isSuperAdmin(req.user),
+    update: ({ req }) => isSuperAdmin(req.user),
   },
 });
 
