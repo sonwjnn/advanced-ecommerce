@@ -78,6 +78,7 @@ export const SignInView = () => {
               </Link>
               <Link prefetch href="/sign-up">
                 <Button
+                  type="button"
                   variant="ghost"
                   size="sm"
                   className="text-base border-none underline"

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NavbarSidebar } from "./navbar-sidebar";
 import { useState } from "react";
-import { MenuIcon } from "lucide-react";
+import { Loader2Icon, MenuIcon } from "lucide-react";
 import { useTRPC } from "@/trpc/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -48,7 +48,9 @@ const NavbarItem = ({ href, children, isActive }: NavbarItemProps) => {
 export const Navbar = () => {
   const pathname = usePathname();
   const trpc = useTRPC();
-  const { data: session } = useQuery(trpc.auth.session.queryOptions());
+  const { data: session, isLoading } = useQuery(
+    trpc.auth.session.queryOptions()
+  );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -77,36 +79,45 @@ export const Navbar = () => {
           </NavbarItem>
         ))}
       </div>
-      {session?.user ? (
-        <div className="hidden lg:flex">
-          <Button
-            asChild
-            variant="secondary"
-            className="border-l border-t-0  border-b-0 border-r-0 px-12 h-full rounded-none bg-white hover:bg-pink-400 transition-colors text-lg"
-          >
-            <Link href="/admin">Dashboard</Link>
-          </Button>
+      {isLoading && (
+        <div className="animate-spin p-4 flex items-center justify-center">
+          <Loader2Icon className="size-5 text-pink-400" />
         </div>
-      ) : (
-        <div className="hidden lg:flex">
-          <Button
-            asChild
-            variant="secondary"
-            className="border-l border-t-0  border-b-0 border-r-0 px-12 h-full rounded-none bg-white hover:bg-pink-400 transition-colors text-lg"
-          >
-            <Link prefetch href="/sign-in">
-              Login
-            </Link>
-          </Button>
-          <Button
-            asChild
-            className="border-l border-t-0  border-b-0 border-r-0 px-12 h-full rounded-none bg-black hover:bg-pink-400 hover:text-black transition-colors text-lg"
-          >
-            <Link prefetch href="/sign-up">
-              Start selling
-            </Link>
-          </Button>
-        </div>
+      )}
+      {!isLoading && (
+        <>
+          {session?.user ? (
+            <div className="hidden lg:flex">
+              <Button
+                asChild
+                variant="secondary"
+                className="border-l border-t-0  border-b-0 border-r-0 px-12 h-full rounded-none bg-white hover:bg-pink-400 transition-colors text-lg"
+              >
+                <Link href="/admin">Dashboard</Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="hidden lg:flex">
+              <Button
+                asChild
+                variant="secondary"
+                className="border-l border-t-0  border-b-0 border-r-0 px-12 h-full rounded-none bg-white hover:bg-pink-400 transition-colors text-lg"
+              >
+                <Link prefetch href="/sign-in">
+                  Login
+                </Link>
+              </Button>
+              <Button
+                asChild
+                className="border-l border-t-0  border-b-0 border-r-0 px-12 h-full rounded-none bg-black hover:bg-pink-400 hover:text-black transition-colors text-lg"
+              >
+                <Link prefetch href="/sign-up">
+                  Start selling
+                </Link>
+              </Button>
+            </div>
+          )}
+        </>
       )}
 
       <div className="flex lg:hidden items-center justify-center">
