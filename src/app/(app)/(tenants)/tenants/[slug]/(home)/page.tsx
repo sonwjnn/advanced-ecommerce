@@ -7,8 +7,8 @@ import { DEFAULT_LIMIT } from "@/constants";
 import { HydrateClient } from "@/trpc/hydrate-client";
 
 interface Props {
-  params: { slug: string };
-  searchParams: SearchParams;
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<SearchParams>;
 }
 
 export const dynamic = "force-dynamic";
