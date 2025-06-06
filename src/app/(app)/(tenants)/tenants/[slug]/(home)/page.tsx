@@ -6,22 +6,14 @@ import { ProductListView } from "@/modules/products/ui/views/product-list-view";
 import { DEFAULT_LIMIT } from "@/constants";
 import { HydrateClient } from "@/trpc/hydrate-client";
 
-interface PageProps {
+interface Props {
   params: { slug: string };
   searchParams: SearchParams;
 }
 
-interface Props extends PageProps {
-  narrowView?: boolean;
-}
-
 export const dynamic = "force-dynamic";
 
-export default async function Page({
-  params,
-  searchParams,
-  narrowView,
-}: Props) {
+export default async function Page({ params, searchParams }: Props) {
   const { slug } = await params;
 
   const filters = await loadProductFilters(searchParams);
@@ -36,7 +28,7 @@ export default async function Page({
 
   return (
     <HydrateClient>
-      <ProductListView tenantSlug={slug} narrowView={narrowView} />
+      <ProductListView tenantSlug={slug} narrowView />
     </HydrateClient>
   );
 }
