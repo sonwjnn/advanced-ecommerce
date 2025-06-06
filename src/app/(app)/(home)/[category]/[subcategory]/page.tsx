@@ -5,6 +5,8 @@ import { HydrateClient } from "@/trpc/hydrate-client";
 import { prefetch, trpc } from "@/trpc/server";
 import type { SearchParams } from "nuqs";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
   params: Promise<{ subcategory: string }>;
   searchParams: Promise<SearchParams>;

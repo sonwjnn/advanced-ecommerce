@@ -6,12 +6,12 @@ import { ProductListView } from "@/modules/products/ui/views/product-list-view";
 import { DEFAULT_LIMIT } from "@/constants";
 import { HydrateClient } from "@/trpc/hydrate-client";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
   params: Promise<{ slug: string }>;
   searchParams: Promise<SearchParams>;
 }
-
-export const dynamic = "force-dynamic";
 
 export default async function Page({ params, searchParams }: Props) {
   const { slug } = await params;

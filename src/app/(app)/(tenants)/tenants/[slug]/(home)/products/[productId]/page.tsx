@@ -6,6 +6,8 @@ import {
 import { prefetch, trpc } from "@/trpc/server";
 import { HydrateClient } from "@/trpc/hydrate-client";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   params: Promise<{ productId: string; slug: string }>;
 }
